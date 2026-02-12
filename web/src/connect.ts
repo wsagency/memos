@@ -10,7 +10,6 @@ import { InstanceService } from "./types/proto/api/v1/instance_service_pb";
 import { MemoService } from "./types/proto/api/v1/memo_service_pb";
 import { ShortcutService } from "./types/proto/api/v1/shortcut_service_pb";
 import { UserService } from "./types/proto/api/v1/user_service_pb";
-import { redirectOnAuthFailure } from "./utils/auth-redirect";
 
 // ============================================================================
 // Constants
@@ -123,7 +122,10 @@ const authInterceptor: Interceptor = (next) => async (req) => {
       req.header.set(RETRY_HEADER, RETRY_HEADER_VALUE);
       return await next(req);
     } catch (refreshError) {
-      redirectOnAuthFailure();
+      // Don't redirect here — let the calling code (AuthContext, RootLayout) handle
+      // the unauthenticated state. Calling redirectOnAuthFailure() from the interceptor
+      // causes a redirect loop because window.location.replace is async and React
+      // continues rendering, triggering more redirects before the first one completes.
       throw refreshError;
     }
   }
