@@ -92,6 +92,7 @@ export interface EditorProps {
   isInIME?: boolean;
   onCompositionStart?: () => void;
   onCompositionEnd?: () => void;
+  onImageUpload?: (file: File) => Promise<string | null>;
 }
 
 export interface VisibilitySelectorProps {
