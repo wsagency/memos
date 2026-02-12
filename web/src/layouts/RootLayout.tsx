@@ -1,27 +1,29 @@
 import { useEffect, useMemo } from "react";
-import { Outlet, useLocation, useSearchParams } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import usePrevious from "react-use/lib/usePrevious";
 import Navigation from "@/components/Navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { useMemoFilterContext } from "@/contexts/MemoFilterContext";
-import useCurrentUser from "@/hooks/useCurrentUser";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
-import { redirectOnAuthFailure } from "@/utils/auth-redirect";
+import { ROUTES } from "@/router/routes";
 
 const RootLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sm = useMediaQuery("sm");
-  const currentUser = useCurrentUser();
+  const { currentUser, isInitialized } = useAuth();
   const { removeFilter } = useMemoFilterContext();
   const pathname = useMemo(() => location.pathname, [location.pathname]);
   const prevPathname = usePrevious(pathname);
 
+  // Redirect to auth page if not authenticated (after auth is initialized)
   useEffect(() => {
-    if (!currentUser) {
-      redirectOnAuthFailure();
+    if (isInitialized && !currentUser) {
+      navigate(ROUTES.AUTH, { replace: true });
     }
-  }, [currentUser]);
+  }, [isInitialized, currentUser, navigate]);
 
   useEffect(() => {
     // When the route changes and there is no filter in the search params, remove all filters
