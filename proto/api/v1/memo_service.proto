@@ -367,6 +367,7 @@ message MemoRelation {
     TYPE_UNSPECIFIED = 0;
     REFERENCE = 1;
     COMMENT = 2;
+    PARENT = 3;
   }
   Type type = 3 [(google.api.field_behavior) = REQUIRED];
 

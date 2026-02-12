@@ -636,6 +636,11 @@ export enum MemoRelation_Type {
    * @generated from enum value: COMMENT = 2;
    */
   COMMENT = 2,
+
+  /**
+   * @generated from enum value: PARENT = 3;
+   */
+  PARENT = 3,
 }
 
 /**

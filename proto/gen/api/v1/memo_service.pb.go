@@ -84,6 +84,7 @@ const (
 	MemoRelation_TYPE_UNSPECIFIED MemoRelation_Type = 0
 	MemoRelation_REFERENCE        MemoRelation_Type = 1
 	MemoRelation_COMMENT          MemoRelation_Type = 2
+	MemoRelation_PARENT           MemoRelation_Type = 3
 )
 
 // Enum value maps for MemoRelation_Type.
@@ -92,11 +93,13 @@ var (
 		0: "TYPE_UNSPECIFIED",
 		1: "REFERENCE",
 		2: "COMMENT",
+		3: "PARENT",
 	}
 	MemoRelation_Type_value = map[string]int32{
 		"TYPE_UNSPECIFIED": 0,
 		"REFERENCE":        1,
 		"COMMENT":          2,
+		"PARENT":           3,
 	}
 )
 

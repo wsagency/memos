@@ -166,6 +166,8 @@ func convertMemoRelationTypeFromStore(relationType store.MemoRelationType) v1pb.
 		return v1pb.MemoRelation_REFERENCE
 	case store.MemoRelationComment:
 		return v1pb.MemoRelation_COMMENT
+	case store.MemoRelationParent:
+		return v1pb.MemoRelation_PARENT
 	default:
 		return v1pb.MemoRelation_TYPE_UNSPECIFIED
 	}
@@ -175,6 +177,8 @@ func convertMemoRelationTypeToStore(relationType v1pb.MemoRelation_Type) store.M
 	switch relationType {
 	case v1pb.MemoRelation_COMMENT:
 		return store.MemoRelationComment
+	case v1pb.MemoRelation_PARENT:
+		return store.MemoRelationParent
 	default:
 		return store.MemoRelationReference
 	}

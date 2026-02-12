@@ -11,6 +11,8 @@ const (
 	MemoRelationReference MemoRelationType = "REFERENCE"
 	// MemoRelationComment is the type for a comment memo relation.
 	MemoRelationComment MemoRelationType = "COMMENT"
+	// MemoRelationParent is the type for a parent-child memo relation (hierarchy).
+	MemoRelationParent MemoRelationType = "PARENT"
 )
 
 type MemoRelation struct {

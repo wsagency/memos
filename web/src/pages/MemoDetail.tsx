@@ -3,6 +3,7 @@ import { ArrowUpLeftFromCircleIcon, MessageCircleIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { Link, useLocation, useParams } from "react-router-dom";
+import Breadcrumb from "@/components/Breadcrumb";
 import { MemoDetailSidebar, MemoDetailSidebarDrawer } from "@/components/MemoDetailSidebar";
 import MemoEditor from "@/components/MemoEditor";
 import MemoView from "@/components/MemoView";
@@ -71,6 +72,7 @@ const MemoDetail = () => {
       )}
       <div className={cn("w-full flex flex-row justify-start items-start px-4 sm:px-6 gap-4")}>
         <div className={cn("w-full md:w-[calc(100%-15rem)]")}>
+          <Breadcrumb memo={memo} className="mb-2" />
           {parentMemo && (
             <div className="w-auto inline-block mb-2">
               <Link
