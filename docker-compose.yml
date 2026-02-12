@@ -1,0 +1,23 @@
+# WS Memos - Docker Compose for deployment
+# Build: docker compose build
+# Run:   docker compose up -d
+# Logs:  docker compose logs -f memos
+
+services:
+  memos:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile
+    container_name: memos-ws
+    restart: unless-stopped
+    ports:
+      - "5231:5230"
+    volumes:
+      - memos-data:/var/opt/memos
+    environment:
+      - TZ=Europe/Zagreb
+      - MEMOS_PORT=5230
+
+volumes:
+  memos-data:
+    driver: local

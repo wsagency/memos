@@ -1,3 +1,18 @@
+# Stage 1: Build frontend
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend
+WORKDIR /frontend-build
+
+# Copy web package files and install dependencies (cached layer)
+COPY web/package.json web/pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@latest --activate && \
+    pnpm install --frozen-lockfile
+
+# Copy web source and build
+COPY web/ ./
+# Build into a temporary output dir (release script expects ../server/... relative path)
+RUN pnpm build --outDir=/frontend-build/dist --emptyOutDir
+
+# Stage 2: Build backend with embedded frontend
 FROM --platform=$BUILDPLATFORM golang:1.25.7-alpine AS backend
 WORKDIR /backend-build
 
@@ -9,11 +24,12 @@ COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download
 
-# Copy source code (use .dockerignore to exclude unnecessary files)
+# Copy source code
 COPY . .
 
-# Please build frontend first, so that the static files are available.
-# Refer to `pnpm release` in package.json for the build command.
+# Copy built frontend into the embed directory
+COPY --from=frontend /frontend-build/dist/ ./server/router/frontend/dist/
+
 ARG TARGETOS TARGETARCH VERSION COMMIT
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
