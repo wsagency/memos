@@ -1,4 +1,7 @@
-import { forwardRef } from "react";
+import { forwardRef, useCallback } from "react";
+import { create } from "@bufbuild/protobuf";
+import { attachmentServiceClient } from "@/connect";
+import { AttachmentSchema } from "@/types/proto/api/v1/attachment_service_pb";
 import Editor, { type EditorRefActions } from "../Editor";
 import { useBlobUrls, useDragAndDrop } from "../hooks";
 import { useEditorContext } from "../state";
@@ -10,20 +13,15 @@ export const EditorContent = forwardRef<EditorRefActions, EditorContentProps>(({
   const { createBlobUrl } = useBlobUrls();
 
   const { dragHandlers } = useDragAndDrop((files: FileList) => {
-    const localFiles: LocalFile[] = Array.from(files).map((file) => ({
+    // Only handle non-image files as attachments; images are handled by TiptapEditor inline
+    const nonImageFiles = Array.from(files).filter((file) => !file.type.startsWith("image/"));
+    if (nonImageFiles.length === 0) return;
+    const localFiles: LocalFile[] = nonImageFiles.map((file) => ({
       file,
       previewUrl: createBlobUrl(file),
     }));
     localFiles.forEach((localFile) => dispatch(actions.addLocalFile(localFile)));
   });
-
-  const handleCompositionStart = () => {
-    dispatch(actions.setComposing(true));
-  };
-
-  const handleCompositionEnd = () => {
-    dispatch(actions.setComposing(false));
-  };
 
   const handleContentChange = (content: string) => {
     dispatch(actions.updateContent(content));
@@ -33,15 +31,17 @@ export const EditorContent = forwardRef<EditorRefActions, EditorContentProps>(({
     const clipboard = event.clipboardData;
     if (!clipboard) return;
 
+    // Only intercept non-image file pastes; images are handled by Tiptap's ImageUpload extension
     const files: File[] = [];
     if (clipboard.items && clipboard.items.length > 0) {
       for (const item of Array.from(clipboard.items)) {
         if (item.kind !== "file") continue;
         const file = item.getAsFile();
-        if (file) files.push(file);
+        if (file && !file.type.startsWith("image/")) files.push(file);
       }
     } else if (clipboard.files && clipboard.files.length > 0) {
-      files.push(...Array.from(clipboard.files));
+      const nonImageFiles = Array.from(clipboard.files).filter((f) => !f.type.startsWith("image/"));
+      files.push(...nonImageFiles);
     }
 
     if (files.length === 0) return;
@@ -54,6 +54,24 @@ export const EditorContent = forwardRef<EditorRefActions, EditorContentProps>(({
     event.preventDefault();
   };
 
+  const handleImageUpload = useCallback(async (file: File): Promise<string | null> => {
+    try {
+      const buffer = new Uint8Array(await file.arrayBuffer());
+      const attachment = await attachmentServiceClient.createAttachment({
+        attachment: create(AttachmentSchema, {
+          filename: file.name,
+          size: BigInt(file.size),
+          type: file.type,
+          content: buffer,
+        }),
+      });
+      return `${window.location.origin}/file/${attachment.name}/${attachment.filename}`;
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      return null;
+    }
+  }, []);
+
   return (
     <div className="w-full flex flex-col flex-1" {...dragHandlers}>
       <Editor
@@ -65,8 +83,7 @@ export const EditorContent = forwardRef<EditorRefActions, EditorContentProps>(({
         isInIME={state.ui.isComposing}
         onContentChange={handleContentChange}
         onPaste={handlePaste}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
+        onImageUpload={handleImageUpload}
       />
     </div>
   );
